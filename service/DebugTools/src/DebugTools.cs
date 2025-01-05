@@ -213,5 +213,26 @@ namespace KRPC.DebugTools
         public static bool GetPaused() {
             return FlightDriver.Pause;
         }
+
+        /// <summary>
+        /// Change the amount of resource in a part.
+        /// </summary>
+        [KRPCProcedure]
+        public static void SetResourceLevel(SpaceCenter.Services.Resource resource, float amount) {
+            if (amount >= 0.0 && amount < resource.InternalResource.maxAmount)
+                resource.InternalResource.amount = amount;
+            else if (amount < 0.0)
+                resource.InternalResource.amount = 0.0;
+            else 
+                resource.InternalResource.amount = resource.InternalResource.maxAmount;
+        }
+
+        /// <summary>
+        /// Change the gravity multiplier.
+        /// </summary>
+        [KRPCProcedure]
+        public static void SetGravityMultiplier(float multiplier) {
+            PhysicsGlobals.GraviticForceMultiplier = multiplier;
+        }
     }
 }

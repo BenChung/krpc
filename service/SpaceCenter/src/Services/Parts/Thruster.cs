@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using KRPC.Service.Attributes;
 using KRPC.SpaceCenter.ExtensionMethods;
@@ -15,15 +16,20 @@ namespace KRPC.SpaceCenter.Services.Parts
     public class ThrusterGimbalControl : Equatable<ThrusterGimbalControl>
     {
         private static List<ThrusterGimbalControl> _activeControls = new List<ThrusterGimbalControl>();
-        private class GimbalControlAdjuster : Expansions.Missions.Adjusters.AdjusterGimbalBase
+        /// <summary>
+        /// The internal adjuster used to control TVC 
+        /// </summary>
+        public class GimbalControlAdjuster : Expansions.Missions.Adjusters.AdjusterGimbalBase
         {
-            
+            /// <summary></summary>
             public GimbalControlAdjuster() { }
 
+            /// <summary></summary>
             public GimbalControlAdjuster(Expansions.Missions.MENode node) : base(node)
             {
             }
-            public Vector3 Setting = Vector3.zero;
+            internal Vector3 Setting = Vector3.zero;
+            /// <summary> </summary>
             public override Vector3 ApplyControlAdjustment(Vector3 control) 
             {
                 return Setting;
@@ -74,7 +80,7 @@ namespace KRPC.SpaceCenter.Services.Parts
         /// </summary>
         public override bool Equals (ThrusterGimbalControl other)
         {
-            return !ReferenceEquals (other, null) && gimbal == other.gimbal;
+            return ReferenceEquals(other, this);
         }
 
         /// <summary>
@@ -82,7 +88,7 @@ namespace KRPC.SpaceCenter.Services.Parts
         /// </summary>
         public override int GetHashCode ()
         {
-            return gimbal.GetHashCode();
+            return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
         }
     }
     /// <summary>
@@ -273,6 +279,19 @@ namespace KRPC.SpaceCenter.Services.Parts
         public ThrusterGimbalControl GimbalControl() 
         {
             return new ThrusterGimbalControl(gimbal);
+        }
+
+        /// <summary>
+        /// Disable all gimbal controls
+        /// </summary>
+        [KRPCMethod]
+        public void DisableGimbalControl() 
+        {
+            foreach (var adjuster in gimbal.CurrentModuleAdjusterList.ToList()) {
+                if (adjuster is ThrusterGimbalControl.GimbalControlAdjuster) {
+                    gimbal.RemovePartModuleAdjuster(adjuster);
+                }
+            }
         }
 
         /// <summary>
